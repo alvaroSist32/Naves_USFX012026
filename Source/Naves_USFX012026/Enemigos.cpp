@@ -1,25 +1,26 @@
 #include "Enemigos.h"
-#include "Components/BoxComponent.h" // Inclusión obligatoria para la colisión
+#include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Math/UnrealMathUtility.h" // LibrerÃ­a para generaciÃ³n aleatoria
 
 AEnemigos::AEnemigos()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Configuración de movimiento y bordes del escenario
-	VelocidadX = 300.0f;
-	VelocidadY = 250.0f;
-	LimiteX = 1500.0f; // Distancia máxima permitida en X
-	LimiteY = 1200.0f; // Distancia máxima permitida en Y
+	// Valores iniciales base
+	VelocidadX = 350.0f;
+	VelocidadY = 280.0f;
+	LimiteX = 1400.0f;
+	LimiteY = 1100.0f;
 
-	// 1. Instanciar componente de colisión y definirlo como Raíz (Root)
+	// InicializaciÃ³n del componente de colisiÃ³n (RaÃ­z)
 	ComponenteColision = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxColisionComponent"));
-	ComponenteColision->SetBoxExtent(FVector(60.0f, 60.0f, 60.0f)); // Tamaño del área de colisión
-	ComponenteColision->SetCollisionProfileName(TEXT("BlockAll"));  // Bloquea físicamente contra todo
+	ComponenteColision->SetBoxExtent(FVector(60.0f, 60.0f, 60.0f));
+	ComponenteColision->SetCollisionProfileName(TEXT("BlockAll"));
 	RootComponent = ComponenteColision;
 
-	// 2. Crear la malla visual y adjuntarla a la colisión raíz
+	// InicializaciÃ³n de la malla estÃ©tica (Cono)
 	MallaEnemigo = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MallaEnemigo"));
 	MallaEnemigo->SetupAttachment(RootComponent);
 
@@ -41,20 +42,43 @@ void AEnemigos::Tick(float DeltaTime)
 
 	FVector NuevaPosicion = GetActorLocation();
 
-	// Aplicar traslación temporal por cuadro
+	// Desplazamiento lineal
 	NuevaPosicion.X += VelocidadX * DeltaTime;
 	NuevaPosicion.Y += VelocidadY * DeltaTime;
 
-	// SISTEMA ANTIESCAPE: Si la nave toca el límite virtual de la escena, invierte dirección (rebota)
-	if (NuevaPosicion.X > LimiteX || NuevaPosicion.X < -LimiteX)
+	// CONTROL DE BORDES CON REBOTE CAÃ“TICO ALEATORIO
+	if (NuevaPosicion.X > LimiteX)
 	{
-		VelocidadX *= -1.0f; // Cambia el sentido en X
+		NuevaPosicion.X = LimiteX;
+		VelocidadX = FMath::RandRange(250.0f, 450.0f) * -1.0f; // Invierte sentido a la izquierda
+		VelocidadY += FMath::RandRange(-150.0f, 150.0f);        // Altera el Ã¡ngulo en Y
+	}
+	else if (NuevaPosicion.X < -LimiteX)
+	{
+		NuevaPosicion.X = -LimiteX;
+		VelocidadX = FMath::RandRange(250.0f, 450.0f) * 1.0f;  // Invierte sentido a la derecha
+		VelocidadY += FMath::RandRange(-150.0f, 150.0f);
 	}
 
-	if (NuevaPosicion.Y > LimiteY || NuevaPosicion.Y < -LimiteY)
+	if (NuevaPosicion.Y > LimiteY)
 	{
-		VelocidadY *= -1.0f; // Cambia el sentido en Y
+		NuevaPosicion.Y = LimiteY;
+		VelocidadY = FMath::RandRange(250.0f, 450.0f) * -1.0f; // Invierte sentido hacia abajo
+		VelocidadX += FMath::RandRange(-150.0f, 150.0f);        // Altera el Ã¡ngulo en X
 	}
+	else if (NuevaPosicion.Y < -LimiteY)
+	{
+		NuevaPosicion.Y = -LimiteY;
+		VelocidadY = FMath::RandRange(250.0f, 450.0f) * 1.0f;  // Invierte sentido hacia arriba
+		VelocidadX += FMath::RandRange(-150.0f, 150.0f);
+	}
+
+	// Restrictores de seguridad (Evitan que el objeto se detenga o escape)
+	VelocidadX = FMath::Clamp(VelocidadX, -500.0f, 500.0f);
+	VelocidadY = FMath::Clamp(VelocidadY, -500.0f, 500.0f);
+
+	if (FMath::Abs(VelocidadX) < 50.0f) VelocidadX = (VelocidadX < 0) ? -300.0f : 300.0f;
+	if (FMath::Abs(VelocidadY) < 50.0f) VelocidadY = (VelocidadY < 0) ? -300.0f : 300.0f;
 
 	SetActorLocation(NuevaPosicion);
 }
