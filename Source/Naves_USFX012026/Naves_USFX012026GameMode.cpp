@@ -1,14 +1,14 @@
-#pragma once
+#include "Naves_USFX012026GameMode.h"
+#include "Enemigos.h"
 
-#include "CoreMinimal.h"
-#include "GameFramework/GameModeBase.h"
-#include "Naves_USFX012026GameMode.generated.h"
-
-UCLASS()
-class NAVES_USFX012026_API ANaves_USFX012026GameMode : public AGameModeBase
+void ANaves_USFX012026GameMode::BeginPlay()
 {
-	GENERATED_BODY()
+	Super::BeginPlay();
 
-protected:
-	virtual void BeginPlay() override;
-};
+	// Vector espacial inicial de spawn
+	FVector PosicionInicio = FVector(150.0f, 0.0f, 250.0f);
+	FRotator RotacionInicio = FRotator::ZeroRotator;
+
+	// Instanciación dinámica directa en la memoria del mundo
+	GetWorld()->SpawnActor<AEnemigos>(AEnemigos::StaticClass(), PosicionInicio, RotacionInicio);
+}
