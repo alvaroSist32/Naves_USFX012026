@@ -1,14 +1,14 @@
-#include "Naves_USFX012026GameMode.h"
-#include "Enemigos.h" // Inclusión de tu Actor
+#pragma once
 
-void ANaves_USFX012026GameMode::BeginPlay()
+#include "CoreMinimal.h"
+#include "GameFramework/GameModeBase.h"
+#include "Naves_USFX012026GameMode.generated.h"
+
+UCLASS()
+class NAVES_USFX012026_API ANaves_USFX012026GameMode : public AGameModeBase
 {
-	Super::BeginPlay();
+	GENERATED_BODY()
 
-	// Definir coordenadas de aparición
-	FVector PosicionInicio = FVector(200.0f, 0.0f, 300.0f);
-	FRotator RotacionInicio = FRotator::ZeroRotator;
-
-	// Colocar en la escena por código C++
-	GetWorld()->SpawnActor<AEnemigos>(AEnemigos::StaticClass(), PosicionInicio, RotacionInicio);
-}
+protected:
+	virtual void BeginPlay() override;
+};
